@@ -1,0 +1,26 @@
+{
+  "name": "KidsBite — Kids Meal Planner",
+  "short_name": "KidsBite",
+  "description": "Plan balanced weekly meals for your kids with Indian food nutrition tracking",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff7ed",
+  "theme_color": "#ea580c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "food", "lifestyle"],
+  "lang": "en-IN"
+}
