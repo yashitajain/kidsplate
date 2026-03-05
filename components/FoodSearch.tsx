@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Search } from 'lucide-react'
+import { Search, Sparkles } from 'lucide-react'
 import type { Food } from '@/lib/supabase'
+import AddFoodModal from './AddFoodModal'
 
 type Props = {
   open: boolean
@@ -27,6 +28,7 @@ export default function FoodSearch({ open, onClose, onSelect }: Props) {
   const [foods, setFoods] = useState<Food[]>([])
   const [loading, setLoading] = useState(false)
   const [servings, setServings] = useState<Record<string, number>>({})
+  const [showAddModal, setShowAddModal] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -68,6 +70,7 @@ export default function FoodSearch({ open, onClose, onSelect }: Props) {
   }
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
         <DialogHeader>
@@ -89,7 +92,17 @@ export default function FoodSearch({ open, onClose, onSelect }: Props) {
         <div className="flex-1 overflow-y-auto space-y-2 mt-2">
           {loading && <p className="text-sm text-gray-500 text-center py-4">Searching...</p>}
           {!loading && foods.length === 0 && query && (
-            <p className="text-sm text-gray-500 text-center py-4">No foods found for "{query}"</p>
+            <div className="flex flex-col items-center gap-3 py-6">
+              <p className="text-sm text-gray-500">No foods found for "{query}"</p>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"
+                style={{ background: '#3d7a57' }}
+              >
+                <Sparkles className="w-4 h-4" />
+                Get nutrition from AI
+              </button>
+            </div>
           )}
           {foods.map(food => (
             <div key={food.id} className="flex items-center gap-3 p-3 rounded-xl border border-stone-100 hover:bg-stone-50 transition-colors">
@@ -127,5 +140,16 @@ export default function FoodSearch({ open, onClose, onSelect }: Props) {
         </div>
       </DialogContent>
     </Dialog>
+
+    <AddFoodModal
+      open={showAddModal}
+      foodName={query}
+      onClose={() => setShowAddModal(false)}
+      onAdded={(food) => {
+        setFoods(prev => [food, ...prev])
+        setShowAddModal(false)
+      }}
+    />
+    </>
   )
 }
