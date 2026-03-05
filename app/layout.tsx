@@ -9,6 +9,10 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
+  ),
   title: "KidsBite — Kids Meal Planner for Indian Moms",
   description: "Plan balanced weekly meals for your kids with 70+ Indian foods. Auto grocery lists, age-specific nutrition tracking, and WhatsApp sharing.",
   manifest: "/manifest.json",
