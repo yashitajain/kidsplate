@@ -30,7 +30,7 @@ type MenuRow = {
   user_id: string
   title: string
   description: string
-  age_group: '1-3' | '4-6' | '7-12'
+  age_group: '1-3' | '4-6' | '7-12' | 'mom'
   is_public: boolean
   share_slug: string | null
   created_at: string

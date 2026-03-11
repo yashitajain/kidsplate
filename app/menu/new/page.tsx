@@ -11,10 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
 
+type DietaryFilter = 'veg' | 'non-veg' | 'jain'
+
 export default function NewMenuPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [ageGroup, setAgeGroup] = useState('')
+  const [useSuggested, setUseSuggested] = useState(true)
+  const [dietaryFilter, setDietaryFilter] = useState<DietaryFilter>('veg')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
@@ -28,7 +32,13 @@ export default function NewMenuPage() {
     const res = await fetch('/api/menus', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description, age_group: ageGroup }),
+      body: JSON.stringify({
+        title,
+        description,
+        age_group: ageGroup,
+        auto_fill: useSuggested,
+        dietary_filter: useSuggested ? dietaryFilter : undefined,
+      }),
     })
     const data = await res.json()
 
@@ -72,7 +82,7 @@ export default function NewMenuPage() {
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="age-group">Child's Age Group *</Label>
+                <Label htmlFor="age-group">Age Group *</Label>
                 <Select onValueChange={setAgeGroup} required>
                   <SelectTrigger id="age-group">
                     <SelectValue placeholder="Select age group" />
@@ -81,6 +91,7 @@ export default function NewMenuPage() {
                     <SelectItem value="1-3">1–3 years (Toddler)</SelectItem>
                     <SelectItem value="4-6">4–6 years (Pre-school)</SelectItem>
                     <SelectItem value="7-12">7–12 years (School age)</SelectItem>
+                    <SelectItem value="mom">Mom (Adult)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -96,6 +107,38 @@ export default function NewMenuPage() {
                 />
               </div>
 
+              <label className="flex items-start gap-3 rounded-lg border border-orange-100 bg-orange-50 p-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 accent-orange-600"
+                  checked={useSuggested}
+                  onChange={e => setUseSuggested(e.target.checked)}
+                />
+                <div>
+                  <p className="text-sm font-medium text-gray-800">Create with suggested weekly meals</p>
+                  <p className="text-xs text-gray-600">Auto-fills breakfast, lunch, dinner, and snacks based on age group.</p>
+                </div>
+              </label>
+
+              {useSuggested && (
+                <div className="space-y-1">
+                  <Label htmlFor="diet-filter">Suggested Menu Type *</Label>
+                  <Select value={dietaryFilter} onValueChange={(v) => setDietaryFilter(v as DietaryFilter)}>
+                    <SelectTrigger id="diet-filter">
+                      <SelectValue placeholder="Select diet type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="veg">Veg</SelectItem>
+                      <SelectItem value="non-veg">Non-Veg</SelectItem>
+                      <SelectItem value="jain">Jain</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    Jain filter uses ingredient-name matching heuristics from food names/aliases.
+                  </p>
+                </div>
+              )}
+
               {error && <p className="text-sm text-red-600">{error}</p>}
 
               <Button
@@ -103,7 +146,7 @@ export default function NewMenuPage() {
                 className="w-full bg-orange-600 hover:bg-orange-700"
                 disabled={loading || !title || !ageGroup}
               >
-                {loading ? 'Creating...' : 'Create Menu & Start Planning'}
+                {loading ? 'Creating...' : useSuggested ? 'Create Suggested Menu' : 'Create Empty Menu'}
               </Button>
             </form>
           </CardContent>

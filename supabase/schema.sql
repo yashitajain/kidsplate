@@ -37,7 +37,7 @@ create table if not exists menus (
   user_id uuid not null references auth.users(id) on delete cascade,
   title text not null,
   description text default '',
-  age_group text not null check (age_group in ('1-3', '4-6', '7-12')),
+  age_group text not null check (age_group in ('1-3', '4-6', '7-12', 'mom')),
   is_public bool default false,
   share_slug text unique,
   created_at timestamptz default now()
@@ -68,6 +68,10 @@ alter table menu_items enable row level security;
 
 -- Foods: readable by all (public food database)
 create policy "Foods are readable by everyone" on foods for select using (true);
+
+-- Foods: authenticated users can add custom foods
+create policy "Authenticated users can insert foods" on foods for insert
+  with check (auth.uid() is not null);
 
 -- Food ingredients: readable by all
 create policy "Food ingredients are readable by everyone" on food_ingredients for select using (true);

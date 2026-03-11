@@ -1,6 +1,6 @@
-import type { Food, MenuItemWithFood } from './supabase'
+import type { MenuItemWithFood } from './supabase'
 
-export type AgeGroup = '1-3' | '4-6' | '7-12'
+export type AgeGroup = '1-3' | '4-6' | '7-12' | 'mom'
 
 export type NutrientKey = 'calories' | 'protein_g' | 'iron_mg' | 'calcium_mg' | 'vitamin_c_mg' | 'fiber_g'
 
@@ -17,6 +17,7 @@ export const RDA: Record<AgeGroup, RDAEntry> = {
   '1-3':  { calories: 1000, protein: 16, iron: 9,  calcium: 700,  vitaminC: 40, fiber: 19 },
   '4-6':  { calories: 1200, protein: 20, iron: 13, calcium: 1000, vitaminC: 25, fiber: 20 },
   '7-12': { calories: 1800, protein: 35, iron: 22, calcium: 1200, vitaminC: 40, fiber: 25 },
+  mom:    { calories: 2000, protein: 46, iron: 18, calcium: 1000, vitaminC: 75, fiber: 25 },
 }
 
 export type DayNutrition = {

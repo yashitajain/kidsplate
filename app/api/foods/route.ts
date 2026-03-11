@@ -37,6 +37,15 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (error) {
+    if (error.code === '42501' || /row-level security/i.test(error.message)) {
+      return NextResponse.json(
+        {
+          error:
+            'Food insert is blocked by Supabase RLS. Run supabase/rls-foods-insert.sql in your Supabase SQL Editor, then retry.',
+        },
+        { status: 403 }
+      )
+    }
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 

@@ -21,7 +21,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!menu) return { title: 'KidsBite' }
 
   const title = `${menu.title} — KidsBite Meal Plan`
-  const description = menu.description || `A weekly Indian meal plan for kids ages ${menu.age_group}`
+  const description = menu.description || (
+    menu.age_group === 'mom'
+      ? 'A weekly Indian meal plan for moms'
+      : `A weekly Indian meal plan for kids ages ${menu.age_group}`
+  )
 
   return {
     title,

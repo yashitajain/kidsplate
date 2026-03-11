@@ -23,9 +23,13 @@ export default async function OGImage({ params }: Props) {
     .eq('is_public', true)
     .single()
 
-  const title = menu?.title ?? 'Kids Meal Plan'
+  const title = menu?.title ?? 'Meal Plan'
   const description = menu?.description ?? 'A balanced weekly meal plan'
-  const ageGroup = menu?.age_group ? `Ages ${menu.age_group} yrs` : ''
+  const ageGroup = menu?.age_group
+    ? menu.age_group === 'mom'
+      ? 'Mom'
+      : `Ages ${menu.age_group} yrs`
+    : ''
 
   return new ImageResponse(
     (
@@ -86,7 +90,7 @@ export default async function OGImage({ params }: Props) {
         {/* Footer */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 22, color: '#888888' }}>
-            Weekly Indian meal plan for kids
+            Weekly Indian meal planner
           </span>
           <div
             style={{

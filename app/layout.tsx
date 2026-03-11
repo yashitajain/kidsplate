@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')
   ),
   title: "KidsBite — Kids Meal Planner for Indian Moms",
-  description: "Plan balanced weekly meals for your kids with 70+ Indian foods. Auto grocery lists, age-specific nutrition tracking, and WhatsApp sharing.",
+  description: "Plan balanced weekly meals for kids and moms with 70+ Indian foods. Auto grocery lists, age-specific nutrition tracking, and WhatsApp sharing.",
   manifest: "/manifest.json",
 };
 

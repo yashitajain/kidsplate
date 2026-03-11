@@ -13,6 +13,13 @@ type Props = {
   ageGroup: AgeGroup
 }
 
+const AGE_LABEL: Record<AgeGroup, string> = {
+  '1-3': '1-3 years',
+  '4-6': '4-6 years',
+  '7-12': '7-12 years',
+  mom: 'Mom',
+}
+
 const NUTRIENTS: Array<{ key: keyof typeof NUTRIENT_LABELS; rdaKey: keyof typeof RDA['1-3'] }> = [
   { key: 'calories', rdaKey: 'calories' },
   { key: 'protein', rdaKey: 'protein' },
@@ -33,7 +40,7 @@ export default function NutritionSummary({ items, ageGroup }: Props) {
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-500 inline-block" /> ≥80% RDA</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-yellow-500 inline-block" /> 50-80% RDA</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500 inline-block" /> &lt;50% RDA</span>
-        <span className="text-gray-500">Age group: {ageGroup} years</span>
+        <span className="text-gray-500">Age group: {AGE_LABEL[ageGroup]}</span>
       </div>
 
       <div className="overflow-x-auto">

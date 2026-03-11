@@ -7,29 +7,77 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
+  const router = useRouter()
+  const supabase = createClient()
   const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
-  async function handleMagicLink(e: React.FormEvent) {
-    e.preventDefault()
-    const supabase = createClient()
-    setLoading(true)
-    setError('')
+  async function sendOtp(email: string) {
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+        // Set to false if you do not want the user to be automatically signed up.
+        shouldCreateUser: true,
+      },
     })
-    if (error) setError(error.message)
-    else setSent(true)
+
+    if (error) {
+      console.error('Error sending OTP:', error.message)
+      return error.message
+    } else {
+      console.log('OTP sent successfully. Check your email inbox.')
+      return null
+    }
+  }
+
+  async function handleSendCode(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    setSuccess('')
+    const otpError = await sendOtp(email)
+    if (otpError) {
+      setError(otpError)
+    } else {
+      setSent(true)
+      setSuccess('Verification code sent. Check your email.')
+    }
+    setLoading(false)
+  }
+
+  async function handleVerifyCode(e: React.FormEvent) {
+    e.preventDefault()
+    if (!email || !code) return
+
+    setLoading(true)
+    setError('')
+    setSuccess('')
+
+    const res = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, token: code }),
+    })
+
+    const data = await res.json()
+    if (!res.ok) {
+      setError(data.error ?? 'Invalid or expired code')
+    } else {
+      router.push('/dashboard')
+      router.refresh()
+    }
+
     setLoading(false)
   }
 
   async function handleGoogle() {
-    const supabase = createClient()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/auth/callback` },
@@ -76,13 +124,41 @@ export default function LoginPage() {
             </div>
 
             {sent ? (
-              <div className="text-center py-4 space-y-2">
-                <div className="text-4xl">📧</div>
-                <p className="font-medium text-gray-700">Check your email</p>
-                <p className="text-sm text-gray-500">We sent a magic link to <strong>{email}</strong></p>
-              </div>
+              <form onSubmit={handleVerifyCode} className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="code">Verification code</Label>
+                  <Input
+                    id="code"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Enter code from email"
+                    value={code}
+                    onChange={e => setCode(e.target.value.trim())}
+                    required
+                  />
+                </div>
+                {success && <p className="text-sm text-green-700">{success}</p>}
+                {error && <p className="text-sm text-red-600">{error}</p>}
+                <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700" disabled={loading}>
+                  {loading ? 'Verifying...' : 'Verify Code'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  disabled={loading}
+                  onClick={() => {
+                    setSent(false)
+                    setCode('')
+                    setError('')
+                    setSuccess('')
+                  }}
+                >
+                  Use a different email
+                </Button>
+              </form>
             ) : (
-              <form onSubmit={handleMagicLink} className="space-y-3">
+              <form onSubmit={handleSendCode} className="space-y-3">
                 <div className="space-y-1">
                   <Label htmlFor="email">Email address</Label>
                   <Input
@@ -94,9 +170,10 @@ export default function LoginPage() {
                     required
                   />
                 </div>
+                {success && <p className="text-sm text-green-700">{success}</p>}
                 {error && <p className="text-sm text-red-600">{error}</p>}
                 <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700" disabled={loading}>
-                  {loading ? 'Sending...' : 'Send Magic Link'}
+                  {loading ? 'Sending...' : 'Send Login Code'}
                 </Button>
               </form>
             )}

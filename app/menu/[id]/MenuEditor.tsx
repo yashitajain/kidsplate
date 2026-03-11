@@ -21,6 +21,7 @@ const AGE_LABEL: Record<string, string> = {
   '1-3': '1–3 yrs',
   '4-6': '4–6 yrs',
   '7-12': '7–12 yrs',
+  mom: 'Mom',
 }
 
 export default function MenuEditor({ initialMenu, initialItems }: Props) {

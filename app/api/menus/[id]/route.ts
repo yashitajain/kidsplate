@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { nanoid } from 'nanoid'
 
 type Params = { params: Promise<{ id: string }> }
+const ALLOWED_AGE_GROUPS = ['1-3', '4-6', '7-12', 'mom'] as const
 
 // GET /api/menus/[id] — get menu with items
 export async function GET(_request: NextRequest, { params }: Params) {
@@ -47,7 +48,12 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const updates: Record<string, unknown> = {}
   if (title !== undefined) updates.title = title
   if (description !== undefined) updates.description = description
-  if (age_group !== undefined) updates.age_group = age_group
+  if (age_group !== undefined) {
+    if (!ALLOWED_AGE_GROUPS.includes(age_group)) {
+      return NextResponse.json({ error: 'invalid age_group' }, { status: 400 })
+    }
+    updates.age_group = age_group
+  }
   if (is_public !== undefined) {
     updates.is_public = is_public
     // Auto-generate slug when making public

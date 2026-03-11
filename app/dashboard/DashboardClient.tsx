@@ -20,6 +20,14 @@ const AGE_COLORS: Record<string, string> = {
   '1-3': 'bg-pink-100 text-pink-700',
   '4-6': 'bg-blue-100 text-blue-700',
   '7-12': 'bg-green-100 text-green-700',
+  mom: 'bg-violet-100 text-violet-700',
+}
+
+const AGE_LABELS: Record<string, string> = {
+  '1-3': '1-3 years',
+  '4-6': '4-6 years',
+  '7-12': '7-12 years',
+  mom: 'Mom',
 }
 
 export default function DashboardClient({ initialMenus, user }: Props) {
@@ -61,7 +69,7 @@ export default function DashboardClient({ initialMenus, user }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">My Menus</h1>
-            <p className="text-gray-500">Plan weekly meals for your kids</p>
+            <p className="text-gray-500">Plan weekly meals for kids and moms</p>
           </div>
           <Link href="/menu/new">
             <Button className="gap-2 bg-orange-600 hover:bg-orange-700">
@@ -75,7 +83,7 @@ export default function DashboardClient({ initialMenus, user }: Props) {
           <div className="text-center py-20 space-y-4">
             <div className="text-6xl">🍽️</div>
             <h2 className="text-xl font-semibold text-gray-700">No menus yet</h2>
-            <p className="text-gray-500">Create your first weekly meal plan for your little one</p>
+            <p className="text-gray-500">Create your first weekly meal plan</p>
             <Link href="/menu/new">
               <Button className="gap-2 bg-orange-600 hover:bg-orange-700">
                 <Plus className="w-4 h-4" />
@@ -98,7 +106,7 @@ export default function DashboardClient({ initialMenus, user }: Props) {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge className={`text-xs ${AGE_COLORS[menu.age_group] ?? ''}`} variant="secondary">
-                      {menu.age_group} years
+                      {AGE_LABELS[menu.age_group] ?? menu.age_group}
                     </Badge>
                     <span className="text-xs text-gray-400">
                       {new Date(menu.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}

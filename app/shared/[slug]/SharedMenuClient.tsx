@@ -21,6 +21,7 @@ const AGE_LABEL: Record<string, string> = {
   '1-3': '1–3 years',
   '4-6': '4–6 years',
   '7-12': '7–12 years',
+  mom: 'Mom',
 }
 
 export default function SharedMenuClient({ menu, items, currentUserId, isOwner }: Props) {

@@ -36,11 +36,11 @@ export default async function LandingPage() {
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
           Plan balanced weekly meals<br />
-          <span className="text-orange-600">for your little ones</span>
+          <span className="text-orange-600">for kids and moms</span>
         </h1>
         <p className="text-xl text-gray-500 max-w-2xl mx-auto">
           Indian food nutrition database · Auto grocery lists · WhatsApp sharing ·
-          Age-specific nutrition tracking
+          Age and profile specific nutrition tracking
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           <Link href={user ? '/menu/new' : '/login'}>

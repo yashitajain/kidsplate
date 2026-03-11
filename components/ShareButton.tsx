@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
-import { Copy, Check, Share2 } from 'lucide-react'
+import { Copy, Check, Share2, Camera } from 'lucide-react'
 import type { Menu } from '@/lib/supabase'
 
 type Props = {
@@ -17,6 +17,7 @@ export default function ShareButton({ menu, onTogglePublic }: Props) {
   const [slug, setSlug] = useState(menu.share_slug)
   const [toggling, setToggling] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [capturing, setCapturing] = useState(false)
 
   const shareUrl = slug ? `${window.location.origin}/shared/${slug}` : ''
 
@@ -46,6 +47,50 @@ export default function ShareButton({ menu, onTogglePublic }: Props) {
   function shareWhatsApp() {
     const text = encodeURIComponent(`Check out this kids meal plan: ${shareUrl}`)
     window.open(`https://wa.me/?text=${text}`, '_blank')
+  }
+
+  async function shareScreenshot() {
+    setCapturing(true)
+    try {
+      const target = document.querySelector('main')
+      if (!target) throw new Error('Could not find menu view to capture')
+
+      const { default: html2canvas } = await import('html2canvas')
+      const canvas = await html2canvas(target as HTMLElement, {
+        backgroundColor: '#faf7f4',
+        scale: 2,
+        useCORS: true,
+      })
+
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'))
+      if (!blob) throw new Error('Failed to create screenshot')
+
+      const filename = `${menu.title.replace(/\s+/g, '-').toLowerCase() || 'menu'}.png`
+      const file = new File([blob], filename, { type: 'image/png' })
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: menu.title,
+          text: 'Weekly meal plan screenshot',
+        })
+        return
+      }
+
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 2000)
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unable to share screenshot'
+      alert(message)
+    } finally {
+      setCapturing(false)
+    }
   }
 
   return (
@@ -84,6 +129,15 @@ export default function ShareButton({ menu, onTogglePublic }: Props) {
           </Button>
         </div>
       )}
+      <Button
+        onClick={shareScreenshot}
+        variant="outline"
+        className="gap-2 w-full"
+        disabled={capturing}
+      >
+        <Camera className="w-4 h-4" />
+        {capturing ? 'Capturing...' : 'Share Screenshot'}
+      </Button>
     </div>
   )
 }
