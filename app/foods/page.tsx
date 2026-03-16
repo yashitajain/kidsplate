@@ -29,13 +29,6 @@ export default function FoodsPage() {
   const [selected, setSelected] = useState<Food | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      fetchFoods(query, category)
-    }, 300)
-  }, [query, category])
-
   async function fetchFoods(q: string, cat: string) {
     setLoading(true)
     const params = new URLSearchParams()
@@ -46,6 +39,13 @@ export default function FoodsPage() {
     setFoods(Array.isArray(data) ? data : [])
     setLoading(false)
   }
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      fetchFoods(query, category)
+    }, 300)
+  }, [query, category])
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -2,11 +2,8 @@
 
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { ArrowLeft, Save, Share2 } from 'lucide-react'
+import { Save, Share2 } from 'lucide-react'
 import { toast } from 'sonner'
 import MenuTabs from '@/components/MenuTabs'
 import ShareButton from '@/components/ShareButton'

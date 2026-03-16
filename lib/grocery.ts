@@ -12,12 +12,6 @@ export type GroceryGroup = {
   items: GroceryItem[]
 }
 
-// Normalize unit for aggregation (convert all to base where possible)
-function normalizeQuantity(quantity: number, unit: string): { quantity: number; unit: string } {
-  // Keep as-is for now; just aggregate same unit+ingredient combos
-  return { quantity, unit }
-}
-
 export function aggregateGroceries(
   menuItems: MenuItemWithFood[],
   ingredientsByFood: Record<string, FoodIngredient[]>

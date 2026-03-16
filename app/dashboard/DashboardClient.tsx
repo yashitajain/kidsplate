@@ -1,15 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Trash2, Eye, Edit, LogOut, Globe, Lock } from 'lucide-react'
 import { createClient } from '@/lib/supabase'
 import type { Menu } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
+import AICopilotPanel from '@/components/AICopilotPanel'
+import GrowthTrackerPanel, { type ChildProfileWithMeasurements } from '@/components/GrowthTrackerPanel'
 
 type Props = {
   initialMenus: Menu[]
@@ -32,9 +34,27 @@ const AGE_LABELS: Record<string, string> = {
 
 export default function DashboardClient({ initialMenus, user }: Props) {
   const [menus, setMenus] = useState(initialMenus)
+  const [profiles, setProfiles] = useState<ChildProfileWithMeasurements[]>([])
   const [deleting, setDeleting] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    let active = true
+
+    async function loadProfiles() {
+      const res = await fetch('/api/child-profiles')
+      const data = await res.json()
+      if (!res.ok || !active) return
+      setProfiles(data.profiles ?? [])
+    }
+
+    loadProfiles()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this menu?')) return
@@ -66,9 +86,18 @@ export default function DashboardClient({ initialMenus, user }: Props) {
       </header>
 
       <main className="max-w-5xl mx-auto p-6 space-y-6">
+        <section className="space-y-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">AI Meal Planner</h1>
+            <p className="text-gray-500">Smart meal generation, nutrition insights, grocery automation, and growth-aware planning.</p>
+          </div>
+          <AICopilotPanel menus={menus} profiles={profiles} />
+          <GrowthTrackerPanel profiles={profiles} onProfilesChange={setProfiles} />
+        </section>
+
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Menus</h1>
+            <h2 className="text-2xl font-bold text-gray-900">Saved Menus</h2>
             <p className="text-gray-500">Plan weekly meals for kids and moms</p>
           </div>
           <Link href="/menu/new">

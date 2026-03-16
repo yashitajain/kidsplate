@@ -25,12 +25,60 @@ type FoodIngredientRow = {
   unit: string
 }
 
+type UserProfileRow = {
+  id: string
+  email: string | null
+  full_name: string | null
+  plan_tier: 'free' | 'ai' | 'nutrition'
+  onboarding_completed: boolean
+  created_at: string
+  updated_at: string
+}
+
+type ChildProfileRow = {
+  id: string
+  user_id: string
+  name: string
+  birth_date: string
+  sex: 'female' | 'male' | 'unspecified'
+  dietary_preferences: string[]
+  allergies: string[]
+  likes: string[]
+  dislikes: string[]
+  health_goals: string[]
+  created_at: string
+  updated_at: string
+}
+
+type GrowthMeasurementRow = {
+  id: string
+  child_profile_id: string
+  recorded_at: string
+  height_cm: number | null
+  weight_kg: number | null
+  notes: string | null
+  created_at: string
+}
+
+type NutritionKnowledgeDocRow = {
+  id: string
+  title: string
+  source: string
+  source_url: string
+  summary: string
+  tags: string[]
+  chunk: string
+}
+
 type MenuRow = {
   id: string
   user_id: string
   title: string
   description: string
   age_group: '1-3' | '4-6' | '7-12' | 'mom'
+  child_profile_id: string | null
+  dietary_constraints: string[]
+  planning_prompt: string | null
   is_public: boolean
   share_slug: string | null
   created_at: string
@@ -58,6 +106,30 @@ export type Database = {
         Row: FoodIngredientRow
         Insert: Omit<FoodIngredientRow, 'id'>
         Update: Partial<Omit<FoodIngredientRow, 'id'>>
+        Relationships: []
+      }
+      user_profiles: {
+        Row: UserProfileRow
+        Insert: Omit<UserProfileRow, 'created_at' | 'updated_at'>
+        Update: Partial<Omit<UserProfileRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: []
+      }
+      child_profiles: {
+        Row: ChildProfileRow
+        Insert: Omit<ChildProfileRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<ChildProfileRow, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+        Relationships: []
+      }
+      growth_measurements: {
+        Row: GrowthMeasurementRow
+        Insert: Omit<GrowthMeasurementRow, 'id' | 'created_at'>
+        Update: Partial<Omit<GrowthMeasurementRow, 'id' | 'created_at'>>
+        Relationships: []
+      }
+      nutrition_knowledge_docs: {
+        Row: NutritionKnowledgeDocRow
+        Insert: Omit<NutritionKnowledgeDocRow, 'id'>
+        Update: Partial<Omit<NutritionKnowledgeDocRow, 'id'>>
         Relationships: []
       }
       menus: {
@@ -105,6 +177,10 @@ export type Database = {
 
 export type Food = Database['public']['Tables']['foods']['Row']
 export type FoodIngredient = Database['public']['Tables']['food_ingredients']['Row']
+export type UserProfile = Database['public']['Tables']['user_profiles']['Row']
+export type ChildProfile = Database['public']['Tables']['child_profiles']['Row']
+export type GrowthMeasurement = Database['public']['Tables']['growth_measurements']['Row']
+export type NutritionKnowledgeDoc = Database['public']['Tables']['nutrition_knowledge_docs']['Row']
 export type Menu = Database['public']['Tables']['menus']['Row']
 export type MenuItem = Database['public']['Tables']['menu_items']['Row']
 

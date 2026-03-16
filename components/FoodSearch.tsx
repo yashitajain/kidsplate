@@ -93,7 +93,7 @@ export default function FoodSearch({ open, onClose, onSelect }: Props) {
           {loading && <p className="text-sm text-gray-500 text-center py-4">Searching...</p>}
           {!loading && foods.length === 0 && query && (
             <div className="flex flex-col items-center gap-3 py-6">
-              <p className="text-sm text-gray-500">No foods found for "{query}"</p>
+              <p className="text-sm text-gray-500">No foods found for &quot;{query}&quot;</p>
               <button
                 onClick={() => setShowAddModal(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-colors"

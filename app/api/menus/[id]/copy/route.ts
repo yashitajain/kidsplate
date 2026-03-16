@@ -31,6 +31,9 @@ export async function POST(_request: NextRequest, { params }: Params) {
       title: `${original.title} (Copy)`,
       description: original.description,
       age_group: original.age_group,
+      child_profile_id: null,
+      dietary_constraints: original.dietary_constraints ?? [],
+      planning_prompt: original.planning_prompt ?? null,
       is_public: false,
       share_slug: null,
     })
