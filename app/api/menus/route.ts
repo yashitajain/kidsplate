@@ -141,12 +141,135 @@ function buildSuggestedItems(menuId: string, ageGroup: AgeGroup, foods: FoodRow[
   return items
 }
 
-function matchFoodByName(foods: FoodRow[], rawName: string) {
+function tokenize(value: string) {
+  return normalizeFoodName(value)
+    .split(' ')
+    .filter(Boolean)
+}
+
+function scoreFoodMatch(food: FoodRow, rawName: string) {
   const target = normalizeFoodName(rawName)
-  return foods.find((food) => {
-    const names = [food.name, ...(food.aliases ?? [])].map(normalizeFoodName)
-    return names.some((candidate) => candidate === target || candidate.includes(target) || target.includes(candidate))
-  })
+  const targetTokens = new Set(tokenize(rawName))
+  const candidates = [food.name, ...(food.aliases ?? [])].map(normalizeFoodName)
+
+  let score = 0
+
+  for (const candidate of candidates) {
+    if (candidate === target) return 1000
+    if (candidate.includes(target) || target.includes(candidate)) {
+      score = Math.max(score, 700)
+    }
+
+    const candidateTokens = tokenize(candidate)
+    let overlap = 0
+    for (const token of candidateTokens) {
+      if (targetTokens.has(token)) overlap += 1
+    }
+    score = Math.max(score, overlap * 100)
+  }
+
+  return score
+}
+
+function matchFoodByName(foods: FoodRow[], rawName: string) {
+  let best: FoodRow | null = null
+  let bestScore = 0
+
+  for (const food of foods) {
+    const score = scoreFoodMatch(food, rawName)
+    if (score > bestScore) {
+      best = food
+      bestScore = score
+    }
+  }
+
+  return bestScore >= 100 ? best : null
+}
+
+function buildFallbackItem(
+  menuId: string,
+  ageGroup: AgeGroup,
+  foods: FoodRow[],
+  mealType: MealType,
+  day: number,
+  indices: Record<string, number>
+): SuggestedItem | null {
+  const priority = MEAL_CATEGORY_PRIORITY[mealType]
+
+  for (const category of priority) {
+    const picked = pickFromCategory(foods, indices, category)
+    if (picked) {
+      return {
+        menu_id: menuId,
+        food_id: picked.id,
+        day,
+        meal_type: mealType,
+        servings: SERVINGS_BY_AGE[ageGroup],
+      }
+    }
+  }
+
+  const anyFood = pickAnyFood(foods, indices)
+  if (!anyFood) return null
+
+  return {
+    menu_id: menuId,
+    food_id: anyFood.id,
+    day,
+    meal_type: mealType,
+    servings: SERVINGS_BY_AGE[ageGroup],
+  }
+}
+
+function resolveAIMenuToItems(
+  menuId: string,
+  ageGroup: AgeGroup,
+  foods: FoodRow[],
+  aiMeals: AIMealSuggestion[]
+) {
+  const resolved: SuggestedItem[] = []
+  const seenSlots = new Set<string>()
+  const fallbackIndices: Record<string, number> = {}
+
+  for (const meal of aiMeals) {
+    if (!MEAL_TYPES.includes(meal.meal_type)) continue
+    if (meal.day < 1 || meal.day > 7) continue
+
+    const slotKey = `${meal.day}:${meal.meal_type}`
+    if (seenSlots.has(slotKey)) continue
+
+    const matchedFood = matchFoodByName(foods, meal.food_name)
+    if (!matchedFood) continue
+
+    resolved.push({
+      menu_id: menuId,
+      food_id: matchedFood.id,
+      day: meal.day,
+      meal_type: meal.meal_type,
+      servings: Number(meal.servings) > 0 ? Number(meal.servings) : SERVINGS_BY_AGE[ageGroup],
+    })
+    seenSlots.add(slotKey)
+  }
+
+  for (let day = 1; day <= 7; day++) {
+    for (const mealType of MEAL_TYPES) {
+      const slotKey = `${day}:${mealType}`
+      if (seenSlots.has(slotKey)) continue
+
+      const fallback = buildFallbackItem(menuId, ageGroup, foods, mealType, day, fallbackIndices)
+      if (!fallback) continue
+
+      resolved.push(fallback)
+      seenSlots.add(slotKey)
+    }
+  }
+
+  return resolved
+}
+
+function hasEnoughFoodVariety(foods: FoodRow[]) {
+  const distinctCategories = new Set(foods.map((food) => food.category))
+  return foods.length >= 12 && distinctCategories.size >= 4
 }
 
 // GET /api/menus — list user's menus
@@ -222,12 +345,28 @@ export async function POST(request: NextRequest) {
 
   const filteredFoods = filterFoodsByDiet((foods ?? []) as FoodRow[], dietary_filter as DietaryFilter | undefined)
 
+  if ((ai_prompt || auto_fill) && !hasEnoughFoodVariety(filteredFoods)) {
+    await supabase.from('menus').delete().eq('id', data.id)
+
+    return NextResponse.json(
+      {
+        error:
+          'Your foods library does not have enough variety yet for AI planning. Seed data/foods-seed.sql into Supabase or add more foods across grains, legumes, vegetables, dairy, fruit, protein, and snacks.',
+      },
+      { status: 400 }
+    )
+  }
+
   if (ai_prompt) {
     try {
       const evidence = await retrieveNutritionEvidence(
         supabase,
         `${ai_prompt} ${age_group} ${Array.isArray(dietary_constraints) ? dietary_constraints.join(' ') : ''}`
       )
+
+      const foodCatalog = filteredFoods
+        .map((food) => `${food.name} [${food.category}]${food.aliases.length ? ` aliases: ${food.aliases.join(', ')}` : ''}`)
+        .join('\n')
 
       const aiMenu = await generateJson<AIMenuPayload>({
         system:
@@ -239,7 +378,8 @@ Age group: ${age_group}
 Parent request: ${ai_prompt}
 Dietary constraints: ${Array.isArray(dietary_constraints) ? dietary_constraints.join(', ') : 'none'}
 
-Available foods: ${(filteredFoods ?? []).map((food) => food.name).join(', ')}
+Available foods. Use these names exactly for food_name:
+${foodCatalog}
 
 Grounding evidence:
 ${formatEvidenceForPrompt(evidence)}
@@ -249,22 +389,18 @@ Return JSON with:
 - description
 - nutrition_focus: array of 3 short points
 - follow_up_questions: array of 3 short questions
-- meals: 28 entries covering days 1-7 and meal types breakfast, lunch, dinner, snack with fields day, meal_type, food_name, servings`,
+- meals: 28 entries covering days 1-7 and meal types breakfast, lunch, dinner, snack with fields day, meal_type, food_name, servings
+Rules:
+- food_name must exactly match one item from the available foods list
+- do not invent dishes outside the list`,
       })
 
-      const matchedItems = aiMenu.meals
-        .map((meal) => {
-          const matchedFood = matchFoodByName(filteredFoods, meal.food_name)
-          if (!matchedFood) return null
-          return {
-            menu_id: data.id,
-            food_id: matchedFood.id,
-            day: meal.day,
-            meal_type: meal.meal_type,
-            servings: Number(meal.servings) > 0 ? Number(meal.servings) : SERVINGS_BY_AGE[age_group as AgeGroup],
-          }
-        })
-        .filter(Boolean) as SuggestedItem[]
+      const matchedItems = resolveAIMenuToItems(
+        data.id,
+        age_group as AgeGroup,
+        filteredFoods,
+        Array.isArray(aiMenu.meals) ? aiMenu.meals : []
+      )
 
       if (matchedItems.length > 0) {
         const { error: insertError } = await supabase.from('menu_items').insert(matchedItems)
@@ -292,10 +428,9 @@ Return JSON with:
           nutrition_focus: aiMenu.nutrition_focus,
           follow_up_questions: aiMenu.follow_up_questions,
           matched_meals: matchedItems.length,
-          warning:
-            matchedItems.length === 0
-              ? 'AI plan was generated, but no meal names matched your current foods library.'
-              : undefined,
+          warning: matchedItems.length < 28
+            ? 'Some AI meal names did not map cleanly, so fallback meals were used to complete the weekly calendar.'
+            : undefined,
           updateError: updateError?.message,
         },
         { status: 201 }
