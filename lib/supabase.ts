@@ -29,10 +29,43 @@ type UserProfileRow = {
   id: string
   email: string | null
   full_name: string | null
+  avatar_url: string | null
   plan_tier: 'free' | 'ai' | 'nutrition'
   onboarding_completed: boolean
   created_at: string
   updated_at: string
+}
+
+type FriendshipRow = {
+  id: string
+  requester_id: string
+  addressee_id: string
+  status: 'pending' | 'accepted' | 'rejected'
+  created_at: string
+  updated_at: string
+}
+
+type MealPostRow = {
+  id: string
+  user_id: string
+  image_url: string
+  caption: string
+  notes: string
+  meal_type: 'breakfast' | 'lunch' | 'dinner' | 'snack' | null
+  ai_meal_name: string | null
+  ai_ingredients: string[]
+  ai_nutrition: Record<string, string | number | null>
+  visibility: 'private' | 'friends' | 'public'
+  created_at: string
+  updated_at: string
+}
+
+type MealPostCommentRow = {
+  id: string
+  post_id: string
+  user_id: string
+  body: string
+  created_at: string
 }
 
 type ChildProfileRow = {
@@ -114,6 +147,24 @@ export type Database = {
         Update: Partial<Omit<UserProfileRow, 'id' | 'created_at' | 'updated_at'>>
         Relationships: []
       }
+      friendships: {
+        Row: FriendshipRow
+        Insert: Omit<FriendshipRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<FriendshipRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: []
+      }
+      meal_posts: {
+        Row: MealPostRow
+        Insert: Omit<MealPostRow, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<MealPostRow, 'id' | 'created_at' | 'updated_at'>>
+        Relationships: []
+      }
+      meal_post_comments: {
+        Row: MealPostCommentRow
+        Insert: Omit<MealPostCommentRow, 'id' | 'created_at'>
+        Update: Partial<Omit<MealPostCommentRow, 'id' | 'created_at'>>
+        Relationships: []
+      }
       child_profiles: {
         Row: ChildProfileRow
         Insert: Omit<ChildProfileRow, 'id' | 'created_at' | 'updated_at'>
@@ -178,6 +229,9 @@ export type Database = {
 export type Food = Database['public']['Tables']['foods']['Row']
 export type FoodIngredient = Database['public']['Tables']['food_ingredients']['Row']
 export type UserProfile = Database['public']['Tables']['user_profiles']['Row']
+export type Friendship = Database['public']['Tables']['friendships']['Row']
+export type MealPost = Database['public']['Tables']['meal_posts']['Row']
+export type MealPostComment = Database['public']['Tables']['meal_post_comments']['Row']
 export type ChildProfile = Database['public']['Tables']['child_profiles']['Row']
 export type GrowthMeasurement = Database['public']['Tables']['growth_measurements']['Row']
 export type NutritionKnowledgeDoc = Database['public']['Tables']['nutrition_knowledge_docs']['Row']

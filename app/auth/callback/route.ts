@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { syncCurrentUserProfile } from '@/lib/user-profile'
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
@@ -9,6 +10,10 @@ export async function GET(request: NextRequest) {
   if (code) {
     const supabase = await createServerSupabaseClient()
     await supabase.auth.exchangeCodeForSession(code)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await syncCurrentUserProfile(user)
+    }
   }
 
   return NextResponse.redirect(`${origin}${next}`)

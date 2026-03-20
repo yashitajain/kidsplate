@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { syncCurrentUserProfile } from '@/lib/user-profile'
 
 export async function POST(request: NextRequest) {
   const { email, token } = await request.json()
@@ -17,6 +18,11 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 })
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    await syncCurrentUserProfile(user)
   }
 
   return NextResponse.json({ ok: true })

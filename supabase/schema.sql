@@ -37,10 +37,47 @@ create table if not exists user_profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
   full_name text,
+  avatar_url text,
   plan_tier text not null default 'free' check (plan_tier in ('free', 'ai', 'nutrition')),
   onboarding_completed boolean not null default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
+);
+
+-- Friend connections
+create table if not exists friendships (
+  id uuid primary key default uuid_generate_v4(),
+  requester_id uuid not null references auth.users(id) on delete cascade,
+  addressee_id uuid not null references auth.users(id) on delete cascade,
+  status text not null default 'pending' check (status in ('pending', 'accepted', 'rejected')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  constraint friendships_no_self check (requester_id <> addressee_id),
+  constraint friendships_unique_direction unique (requester_id, addressee_id)
+);
+
+-- Photo-first meal posts for community sharing
+create table if not exists meal_posts (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  image_url text not null,
+  caption text default '',
+  notes text default '',
+  meal_type text check (meal_type in ('breakfast', 'lunch', 'dinner', 'snack')),
+  ai_meal_name text,
+  ai_ingredients text[] not null default '{}',
+  ai_nutrition jsonb not null default '{}'::jsonb,
+  visibility text not null default 'friends' check (visibility in ('private', 'friends', 'public')),
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists meal_post_comments (
+  id uuid primary key default uuid_generate_v4(),
+  post_id uuid not null references meal_posts(id) on delete cascade,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  body text not null,
+  created_at timestamptz default now()
 );
 
 -- Child profiles
@@ -110,6 +147,11 @@ create table if not exists menu_items (
 -- Indexes
 create index if not exists foods_name_idx on foods using gin(to_tsvector('english', name));
 create index if not exists foods_category_idx on foods(category);
+create index if not exists friendships_requester_idx on friendships(requester_id);
+create index if not exists friendships_addressee_idx on friendships(addressee_id);
+create index if not exists meal_posts_user_id_idx on meal_posts(user_id);
+create index if not exists meal_posts_visibility_idx on meal_posts(visibility);
+create index if not exists meal_post_comments_post_id_idx on meal_post_comments(post_id);
 create index if not exists child_profiles_user_id_idx on child_profiles(user_id);
 create index if not exists growth_measurements_child_profile_id_idx on growth_measurements(child_profile_id);
 create index if not exists menu_items_menu_id_idx on menu_items(menu_id);
@@ -121,6 +163,9 @@ create index if not exists nutrition_knowledge_docs_tags_idx on nutrition_knowle
 alter table foods enable row level security;
 alter table food_ingredients enable row level security;
 alter table user_profiles enable row level security;
+alter table friendships enable row level security;
+alter table meal_posts enable row level security;
+alter table meal_post_comments enable row level security;
 alter table child_profiles enable row level security;
 alter table growth_measurements enable row level security;
 alter table nutrition_knowledge_docs enable row level security;
@@ -144,6 +189,74 @@ create policy "Nutrition knowledge readable by everyone" on nutrition_knowledge_
 create policy "Users can read own profile" on user_profiles for select using (auth.uid() = id);
 create policy "Users can insert own profile" on user_profiles for insert with check (auth.uid() = id);
 create policy "Users can update own profile" on user_profiles for update using (auth.uid() = id);
+
+-- Friendships
+create policy "Users can read own friendships" on friendships for select using (
+  auth.uid() = requester_id or auth.uid() = addressee_id
+);
+create policy "Users can insert own friendships" on friendships for insert with check (
+  auth.uid() = requester_id
+);
+create policy "Users can update friendships they receive" on friendships for update using (
+  auth.uid() = addressee_id or auth.uid() = requester_id
+);
+create policy "Users can delete own friendships" on friendships for delete using (
+  auth.uid() = requester_id or auth.uid() = addressee_id
+);
+
+-- Meal posts
+create policy "Users can read visible meal posts" on meal_posts for select using (
+  auth.uid() = user_id
+  or visibility = 'public'
+  or (
+    visibility = 'friends'
+    and exists (
+      select 1 from friendships
+      where friendships.status = 'accepted'
+      and (
+        (friendships.requester_id = auth.uid() and friendships.addressee_id = meal_posts.user_id)
+        or (friendships.addressee_id = auth.uid() and friendships.requester_id = meal_posts.user_id)
+      )
+    )
+  )
+);
+create policy "Users can insert own meal posts" on meal_posts for insert with check (
+  auth.uid() = user_id
+);
+create policy "Users can update own meal posts" on meal_posts for update using (
+  auth.uid() = user_id
+);
+create policy "Users can delete own meal posts" on meal_posts for delete using (
+  auth.uid() = user_id
+);
+
+create policy "Users can read visible meal post comments" on meal_post_comments for select using (
+  exists (
+    select 1 from meal_posts
+    where meal_posts.id = meal_post_comments.post_id
+    and (
+      meal_posts.user_id = auth.uid()
+      or meal_posts.visibility = 'public'
+      or (
+        meal_posts.visibility = 'friends'
+        and exists (
+          select 1 from friendships
+          where friendships.status = 'accepted'
+          and (
+            (friendships.requester_id = auth.uid() and friendships.addressee_id = meal_posts.user_id)
+            or (friendships.addressee_id = auth.uid() and friendships.requester_id = meal_posts.user_id)
+          )
+        )
+      )
+    )
+  )
+);
+create policy "Users can insert own meal post comments" on meal_post_comments for insert with check (
+  auth.uid() = user_id
+);
+create policy "Users can delete own meal post comments" on meal_post_comments for delete using (
+  auth.uid() = user_id
+);
 
 -- Child profiles
 create policy "Users can read own child profiles" on child_profiles for select using (auth.uid() = user_id);

@@ -15,6 +15,7 @@ type Props = {
   onAdd?: (food: Food, servings: number, day: number, mealType: string) => void
   onRemove?: (itemId: string) => void
   readOnly?: boolean
+  initialTab?: Tab
 }
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
@@ -23,8 +24,8 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'nutrition', label: 'Nutrition',    icon: '📊' },
 ]
 
-export default function MenuTabs({ menu, items, onAdd, onRemove, readOnly }: Props) {
-  const [active, setActive] = useState<Tab>('planner')
+export default function MenuTabs({ menu, items, onAdd, onRemove, readOnly, initialTab = 'planner' }: Props) {
+  const [active, setActive] = useState<Tab>(initialTab)
 
   return (
     <div className="w-full space-y-6">

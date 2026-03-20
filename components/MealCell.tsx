@@ -31,7 +31,7 @@ export default function MealCell({ items, day, mealType, cellCalories, onAdd, on
             : 'border-stone-200 bg-white'
           }
         `}
-        style={{ minHeight: 100 }}
+        style={{ minHeight: 82 }}
       >
         {isEmpty ? (
           /* Empty state — centered + */
@@ -40,14 +40,14 @@ export default function MealCell({ items, day, mealType, cellCalories, onAdd, on
           </div>
         ) : (
           /* Filled state */
-          <div className="p-2.5 space-y-1.5">
+          <div className="p-2 space-y-1">
             {cellItems.map(item => (
               <div
                 key={item.id}
-                className="flex items-center justify-between gap-1 bg-[#f0f7f3] rounded-lg px-2.5 py-1.5 group/chip"
+                className="flex items-center justify-between gap-1 bg-[#f0f7f3] rounded-lg px-2 py-1 group/chip"
               >
                 <div className="min-w-0">
-                  <div className="text-xs font-medium text-stone-700 truncate">{item.food.name}</div>
+                  <div className="text-[11px] font-medium text-stone-700 truncate">{item.food.name}</div>
                   {item.servings !== 1 && (
                     <div className="text-[10px] text-stone-400">×{item.servings}</div>
                   )}

@@ -2,11 +2,11 @@ import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.kidsbite.app',
-  appName: 'KidsBite',
+  appName: 'KidsPlate',
   webDir: 'www',
   server: {
-    url: 'http://127.0.0.1:3000',
-    cleartext: true,
+    url: 'https://kidsplate.vercel.app',
+    cleartext: false,
   },
 };
 

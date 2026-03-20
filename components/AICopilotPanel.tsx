@@ -152,7 +152,7 @@ export default function AICopilotPanel({ menus, profiles }: Props) {
             <div>
               <CardTitle className="text-2xl">AI Nutrition Copilot</CardTitle>
               <CardDescription>
-                RAG-backed meal planning and nutrition answers using verified source documents before the LLM responds.
+                Meal planning and nutrition answers grounded in trusted guidance and your saved menus.
               </CardDescription>
             </div>
             <Link href="/menu/new?mode=ai">
@@ -160,7 +160,7 @@ export default function AICopilotPanel({ menus, profiles }: Props) {
             </Link>
           </div>
           <div className="rounded-2xl border border-orange-200 bg-white/80 p-4 text-sm text-stone-600">
-            Pipeline: question {'->'} embedding {'->'} vector search {'->'} source retrieval {'->'} LLM answer. If the vector table is not ready yet, the app falls back to a local nutrition evidence set.
+            Ask meal, leftovers, and nutrition questions in plain language, then turn the answers into a saved weekly plan.
           </div>
           <div className="flex flex-wrap gap-2">
             {PANELS.map((panel) => (

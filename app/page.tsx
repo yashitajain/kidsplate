@@ -37,7 +37,7 @@ export default async function LandingPage() {
             KidsPlate is now an AI-powered meal planner for parents.
           </h1>
           <p className="max-w-2xl text-lg text-gray-600 md:text-xl">
-            Generate a week of meals from a prompt, track growth by age, height, and weight, get nutrition feedback with RAG-backed sources, automate grocery lists, and analyze meal photos.
+            Generate a week of meals from a prompt, track growth by age, height, and weight, get nutrition feedback, automate grocery lists, and share real meals from your kitchen.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href={user ? '/menu/new?mode=ai' : '/login'}>
@@ -67,10 +67,10 @@ export default async function LandingPage() {
         <div className="rounded-[2rem] border border-orange-200 bg-white/90 p-6 shadow-xl shadow-orange-100">
           <div className="space-y-4">
             <div className="rounded-2xl bg-stone-900 p-5 text-white">
-              <div className="text-sm uppercase tracking-[0.2em] text-orange-200">RAG Verified</div>
-              <div className="mt-2 text-2xl font-semibold">Nutrition answers grounded in source documents</div>
+              <div className="text-sm uppercase tracking-[0.2em] text-orange-200">Built for Daily Use</div>
+              <div className="mt-2 text-2xl font-semibold">Meal plans, saved menus, community inspiration, and growth tracking in one place</div>
               <div className="mt-3 text-sm text-stone-300">
-                User question {'->'} embedding {'->'} vector search {'->'} retrieved nutrition docs {'->'} LLM response
+                Start with a prompt, refine the weekly calendar, save menus, and share them with other families.
               </div>
             </div>
             <div className="grid gap-3 md:grid-cols-2">
@@ -91,6 +91,58 @@ export default async function LandingPage() {
       </section>
 
       <section className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center rounded-[2rem] border border-orange-200 bg-white/90 p-8 shadow-lg shadow-orange-100">
+          <div className="space-y-4">
+            <div className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-800">
+              New on the landing page
+            </div>
+            <h2 className="text-3xl font-bold text-stone-900">Share What You Made Today</h2>
+            <p className="text-base leading-7 text-stone-600">
+              Moms can snap a meal photo, write a quick caption, add notes like what the child liked, and save it into a meal schedule without opening a separate tool first.
+            </p>
+            <div className="space-y-3 text-sm text-stone-600">
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">1. Upload a photo from breakfast, lunch, dinner, or snack.</div>
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">2. Add a caption and notes like “ate half” or “used less spice today”.</div>
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">3. Post it to friends and optionally drop it straight into a saved weekly menu.</div>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href={user ? '/dashboard' : '/login'}>
+                <Button className="bg-orange-600 hover:bg-orange-700">
+                  {user ? 'Open Share Flow' : 'Try It Free'}
+                </Button>
+              </Link>
+              <Link href={user ? '/dashboard' : '/login'}>
+                <Button variant="outline">
+                  {user ? 'Go to Dashboard' : 'Create Account'}
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          <div className="rounded-[1.75rem] bg-stone-900 p-6 text-white">
+            <div className="rounded-[1.5rem] bg-white p-5 text-stone-900">
+              <div className="text-sm font-semibold text-stone-900">Share What You Made Today</div>
+              <div className="mt-4 h-48 rounded-[1.25rem] bg-[linear-gradient(135deg,_#fed7aa,_#fdba74_45%,_#fb923c)] p-4">
+                <div className="h-full rounded-[1rem] border border-white/50 bg-white/25 backdrop-blur">
+                  <div className="flex h-full items-end p-4">
+                    <div className="rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-stone-700">Paneer rice bowl</div>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 rounded-2xl border border-stone-200 p-4">
+                <div className="text-sm font-medium text-stone-900">Caption</div>
+                <div className="mt-2 rounded-xl bg-stone-50 px-3 py-2 text-sm text-stone-600">Easy paneer lunch today</div>
+                <div className="mt-4 text-sm font-medium text-stone-900">Notes</div>
+                <div className="mt-2 rounded-xl bg-stone-50 px-3 py-2 text-sm text-stone-600">Ate well, added cucumber on the side, saving this to Wednesday lunch.</div>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <div className="rounded-full bg-stone-900 px-4 py-2 text-sm text-white">Friends</div>
+                <div className="rounded-full bg-orange-100 px-4 py-2 text-sm text-orange-800">Add to schedule</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[
             {
@@ -99,15 +151,15 @@ export default async function LandingPage() {
             },
             {
               title: 'Nutrition Feedback',
-              desc: 'Review weekly nutrient coverage and surface likely gaps like calcium or iron with source-backed suggestions.',
+              desc: 'Review weekly nutrient coverage and surface likely gaps like calcium or iron with practical suggestions.',
             },
             {
               title: 'Auto Grocery List',
               desc: 'Turn planned meals into a grocery list automatically without extra parent effort.',
             },
             {
-              title: 'Food Recognition',
-              desc: 'Upload a photo and estimate what was served plus rough nutrition for a child-sized portion.',
+              title: 'Meal Sharing',
+              desc: 'Upload a meal photo, add notes, and share what you actually made with friends or the wider community.',
             },
             {
               title: 'Allergy Constraints',
@@ -179,8 +231,8 @@ export default async function LandingPage() {
               <p className="mt-2 text-sm text-stone-600">Profiles, menus, growth logs, and knowledge docs live in Postgres with row-level security.</p>
             </div>
             <div className="rounded-2xl bg-white p-5 shadow-sm">
-              <div className="font-semibold text-stone-900">Retrieval Layer</div>
-              <p className="mt-2 text-sm text-stone-600">Nutrition answers retrieve relevant evidence before generation, which reduces unsupported guidance.</p>
+              <div className="font-semibold text-stone-900">Community Sharing</div>
+              <p className="mt-2 text-sm text-stone-600">Families can save menus, share them publicly, and learn from what others are cooking.</p>
             </div>
           </div>
         </div>
